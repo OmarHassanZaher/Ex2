@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.ex2.data.model.UserModel
 
 
 class DBHelper(context: Context) :
@@ -18,8 +19,8 @@ class DBHelper(context: Context) :
                 DatabaseContract.ExcelTable.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 DatabaseContract.ExcelTable.Area + " TEXT, " +
                 DatabaseContract.ExcelTable.NameOfProduct + " TEXT,  " +
-                DatabaseContract.ExcelTable.Quantity + " TEXT  " +
-
+                DatabaseContract.ExcelTable.Quantity + " DOUBLE,  " +
+                DatabaseContract.ExcelTable.Brand + " TEXT" +
                 ")"
         db.execSQL(SQL_CREATE_STUDENT_TABLE)
     }
@@ -36,7 +37,7 @@ class DBHelper(context: Context) :
         cv.put(DatabaseContract.ExcelTable.Area, model.area)
         cv.put(DatabaseContract.ExcelTable.NameOfProduct, model.nameOfProduct)
         cv.put(DatabaseContract.ExcelTable.Quantity, model.quantity)
-//        cv.put(DatabaseContract.ExcelTable.Brand,model.brand)
+        cv.put(DatabaseContract.ExcelTable.Brand, model.brand)
         return db.insert(DatabaseContract.ExcelTable.TABLE_NAME, null, cv)
     }
 
@@ -51,13 +52,17 @@ class DBHelper(context: Context) :
                 do {
                     val area: String =
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ExcelTable.Area))
+
                     val name_ofProduct: String =
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ExcelTable.NameOfProduct))
+
                     val quantity: String =
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ExcelTable.Quantity))
-//                    val brand: String =
-//                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ExcelTable.Brand))
-                    list.add(UserModel(area, name_ofProduct, quantity))
+
+                    val brand: String =
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.ExcelTable.Brand))
+
+                    list.add(UserModel(area, name_ofProduct, quantity.toDouble(),brand))
                 } while (cursor.moveToNext())
             }
             return list

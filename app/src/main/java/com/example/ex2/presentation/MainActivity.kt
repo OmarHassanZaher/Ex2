@@ -1,17 +1,21 @@
-package com.example.ex2
+package com.example.ex2.presentation
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.text.TextUtils
+import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ex2.data.db.DBHelper
-import com.example.ex2.data.db.UserModel
+import com.example.ex2.data.model.UserModel
 import com.example.ex2.databinding.ActivityMainBinding
+import com.example.ex2.domain.entites.File0
+import com.example.ex2.domain.entites.File1
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
@@ -38,9 +42,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-        System.setProperty("org.apache.poi.javax.xml.stream.XMLInputFactory", "com.fasterxml.aalto.stax.InputFactoryImpl");
-        System.setProperty("org.apache.poi.javax.xml.stream.XMLOutputFactory", "com.fasterxml.aalto.stax.OutputFactoryImpl");
-        System.setProperty("org.apache.poi.javax.xml.stream.XMLEventFactory", "com.fasterxml.aalto.stax.EventFactoryImpl");
+        System.setProperty(
+            "org.apache.poi.javax.xml.stream.XMLInputFactory",
+            "com.fasterxml.aalto.stax.InputFactoryImpl"
+        );
+        System.setProperty(
+            "org.apache.poi.javax.xml.stream.XMLOutputFactory",
+            "com.fasterxml.aalto.stax.OutputFactoryImpl"
+        );
+        System.setProperty(
+            "org.apache.poi.javax.xml.stream.XMLEventFactory",
+            "com.fasterxml.aalto.stax.EventFactoryImpl"
+        );
         init()
         onClick()
     }
@@ -51,9 +64,61 @@ class MainActivity : AppCompatActivity() {
         name_ofProductET = binding!!.etNameOfProduct
         quantityET = binding!!.etQuantity
         brandET = binding!!.etBrand
-        exportTV0 = binding!!.tvImport1
-        exportTV1 = binding!!.tvImport2
+        exportTV0 = binding!!.tvImport0
+        exportTV1 = binding!!.tvImport1
         dbHelper = DBHelper(this@MainActivity)
+    }
+
+
+
+    private fun filterInput1() {
+        var transformedItems: ArrayList<File1> = ArrayList()
+        userList!!.forEach {
+            if (transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct && e.brand == it.brand } == null) {
+                transformedItems.add(File1(it.nameOfProduct, it.brand, 1))
+            } else {
+                var item =
+                    transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct && e.brand == it.brand }
+                var item2 = File1(item!!.nameOfProduct, item.brand, item.number + 1)
+                transformedItems.remove(item)
+                transformedItems.add(item2)
+            }
+        }
+        Log.d("test2", getBrand(transformedItems).toString())
+    }
+
+    private fun getBrand(list :ArrayList<File1>) :List<File1> {
+        var transformedItems: ArrayList<File1> = ArrayList()
+
+        list.forEach{
+        if(transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct  } == null ){
+            transformedItems.add(File1(it.nameOfProduct,it.brand,it.number))
+        }else{
+            var item = transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct }
+            if ( it.number > item!!.number ){
+                transformedItems.remove(item)
+                transformedItems.add(it)
+            }
+        }
+    }
+        return transformedItems
+    }
+    private fun filterInput0() {
+        var transformedItems: ArrayList<File0> = ArrayList()
+        userList!!.forEach {
+            if (transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct } == null) {
+                transformedItems.add(File0(it.nameOfProduct, it.quantity / userList!!.size))
+            } else {
+                var item = transformedItems.find { e -> e.nameOfProduct == it.nameOfProduct }
+                var item2 =
+                    File0(item!!.nameOfProduct, item.quantity + (it.quantity / userList!!.size))
+                transformedItems.remove(item)
+                transformedItems.add(item2)
+
+
+            }
+        }
+        Log.d("test", transformedItems.toString())
     }
 
     private fun onClick() {
@@ -83,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 brandET!!.requestFocus()
 
             }
-            val userModel = UserModel(area,name_of_product,quantity)
+            val userModel = UserModel(area, name_of_product, quantity.toDouble(), brand)
             val id = dbHelper!!.insertUser(userModel)
             if (id > 0) {
                 Toast.makeText(this@MainActivity, "Successful", Toast.LENGTH_SHORT).show()
@@ -92,7 +157,10 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+
+
         exportTV0!!.setOnClickListener {
+            filterInput0()
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
                 if (applicationContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
                     val permissions =
@@ -104,10 +172,9 @@ class MainActivity : AppCompatActivity() {
             } else {
                 importData()
             }
-
         }
         exportTV1!!.setOnClickListener {
-
+            filterInput1()
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
                 if (applicationContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
                     val permissions =
@@ -175,8 +242,8 @@ class MainActivity : AppCompatActivity() {
             cell = row1.createCell(2)
             cell.setCellValue(userList!![i].quantity)
 
-//            cell = row1.createCell(3)
-//            cell.setCellValue(userList!![i].brand)
+            cell = row1.createCell(3)
+            cell.setCellValue(userList!![i].brand)
 
             sheet.setColumnWidth(0, 20 * 200)
             sheet.setColumnWidth(1, 30 * 200)
@@ -190,7 +257,6 @@ class MainActivity : AppCompatActivity() {
         val file = File(
             Environment.getExternalStorageDirectory().toString() + File.separator + "ImportExcel"
         )
-        file.mkdirs()
         if (!file.exists()) {
             file.mkdirs()
         }
@@ -213,7 +279,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-    
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String?>,
@@ -226,6 +292,4 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "Permission Denied", Toast.LENGTH_SHORT).show()
         }
     }
-
-
 }
