@@ -6,6 +6,8 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.ex2.data.model.UserModel
+import com.example.ex2.utils.DATABASE_NAME
+import com.example.ex2.utils.DATABASE_VERSION
 
 
 class DBHelper(context: Context) :
@@ -68,10 +70,6 @@ class DBHelper(context: Context) :
             return list
         }
 
-    companion object {
-        private const val DATABASE_NAME = "user.db"
-        private const val DATABASE_VERSION = 1
-    }
 
     init {
         this.context = context

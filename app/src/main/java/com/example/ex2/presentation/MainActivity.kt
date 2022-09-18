@@ -16,6 +16,7 @@ import com.example.ex2.data.model.UserModel
 import com.example.ex2.databinding.ActivityMainBinding
 import com.example.ex2.domain.entites.File0
 import com.example.ex2.domain.entites.File1
+import dagger.hilt.android.AndroidEntryPoint
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
@@ -25,38 +26,26 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
-
     private var areaET: EditText? = null
     private var name_ofProductET: EditText? = null
     private var quantityET: EditText? = null
     private var brandET: EditText? = null
     private var exportTV0: TextView? = null
     private var exportTV1: TextView? = null
+
     private var userList: ArrayList<UserModel>? = null
     private var dbHelper: DBHelper? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-        System.setProperty(
-            "org.apache.poi.javax.xml.stream.XMLInputFactory",
-            "com.fasterxml.aalto.stax.InputFactoryImpl"
-        );
-        System.setProperty(
-            "org.apache.poi.javax.xml.stream.XMLOutputFactory",
-            "com.fasterxml.aalto.stax.OutputFactoryImpl"
-        );
-        System.setProperty(
-            "org.apache.poi.javax.xml.stream.XMLEventFactory",
-            "com.fasterxml.aalto.stax.EventFactoryImpl"
-        );
         init()
         onClick()
     }
+
 
     private fun init() {
         userList = ArrayList()
